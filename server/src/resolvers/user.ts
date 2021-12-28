@@ -11,7 +11,6 @@ import {
   ObjectType,
 } from "type-graphql";
 import argon2 from "argon2";
-import { query } from "express";
 
 // Define a inputType for our register mutation
 @InputType()
@@ -58,7 +57,7 @@ export class UserResolver {
     // Arg is the params received from our app
     @Arg("options") options: UserNamePasswordEmail,
     // Ctx is the graphql main context defined in index.ts - Access our ORM
-    @Ctx() { em }: MyContext
+    @Ctx() { em, req }: MyContext
   ): // Our register mutation will return a promise with our freshly created user
   Promise<User> {
     const { userName, password, email } = options;
@@ -71,10 +70,14 @@ export class UserResolver {
     });
     // Persist user to our db
     await em.persistAndFlush(user);
+
+    //Auto login on register
+    req.session.userId = user.id;
+
     return user;
   }
 
-  // Query will return a user or null
+  // Query will return a user or error
   @Query(() => UserResponse)
   async login(
     @Arg("options") options: UserNamePassword,
