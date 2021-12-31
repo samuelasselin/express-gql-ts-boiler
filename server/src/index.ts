@@ -9,7 +9,8 @@ import redis from "redis";
 import session from "express-session";
 import connectRedis from "connect-redis";
 import { production } from "./constants";
-import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
+import cors from "cors";
+// import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
 
 // Declaration overwrite to use userId in session
 declare module "express-session" {
@@ -28,6 +29,13 @@ const main = async () => {
   // Setup session token with redis, because redis is fast
   const RedisStore = connectRedis(session);
   const redisClient = redis.createClient();
+
+  app.use(
+    cors({
+      origin: ["http://localhost:3000", "https://studio.apollographql.com"],
+      credentials: true,
+    })
+  );
 
   app.use(
     session({
@@ -51,7 +59,7 @@ const main = async () => {
       resolvers: [UserResolver],
       validate: false,
     }),
-    plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
+    // plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
     context: ({ req, res }) => ({ em: orm.em, req, res }),
   });
 
@@ -59,6 +67,7 @@ const main = async () => {
   await apolloServer.start();
   apolloServer.applyMiddleware({
     app,
+    cors: false,
   });
 
   app.listen(4000, () => {
