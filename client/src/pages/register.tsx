@@ -3,10 +3,13 @@ import { Formik, Form, Field } from "formik";
 import { Button, Box } from "@chakra-ui/react";
 import { InputField } from "../components/InputField";
 import { useRegisterMutation } from "../generated/graphql";
+import { toErrorMap } from "../utils/toErrorMap";
+import { useRouter } from "next/router";
 
 interface registerProps {}
 
 const Register: React.FC<registerProps> = ({}) => {
+  const router = useRouter();
   const [, register] = useRegisterMutation();
 
   return (
@@ -21,10 +24,9 @@ const Register: React.FC<registerProps> = ({}) => {
             },
           });
           if (response.data?.register.errors) {
-            const { field, message } = response.data?.register.errors[0];
-            setErrors({
-              [field]: message,
-            });
+            setErrors(toErrorMap(response.data.register.errors));
+          } else if (response.data?.register.user) {
+            router.push("/");
           }
         }}
       >

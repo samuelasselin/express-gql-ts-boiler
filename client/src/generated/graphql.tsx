@@ -55,7 +55,6 @@ export type User = {
   email: Scalars['String'];
   id: Scalars['Int'];
   updateAt: Scalars['DateTime'];
-  userName: Scalars['String'];
 };
 
 export type UserResponse = {
@@ -69,7 +68,7 @@ export type RegisterMutationVariables = Exact<{
 }>;
 
 
-export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'UserResponse', errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null | undefined, user?: { __typename?: 'User', id: number, userName: string } | null | undefined } };
+export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'UserResponse', errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null | undefined, user?: { __typename?: 'User', id: number, email: string } | null | undefined } };
 
 
 export const RegisterDocument = gql`
@@ -81,7 +80,7 @@ export const RegisterDocument = gql`
     }
     user {
       id
-      userName
+      email
     }
   }
 }

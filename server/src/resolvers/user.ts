@@ -54,12 +54,7 @@ export class UserResolver {
 
     if (!EmailValidator.validate(email)) {
       return {
-        errors: [
-          {
-            field: "email",
-            message: "Email is invalid",
-          },
-        ],
+        errors: [{ field: "email", message: "Email is invalid" }],
       };
     }
 
@@ -70,7 +65,15 @@ export class UserResolver {
       password: hashedPassword,
     });
     // Persist user to our db
-    await em.persistAndFlush(user);
+    try {
+      await em.persistAndFlush(user);
+    } catch (err) {
+      if (err.detail.includes("already exist")) {
+        return {
+          errors: [{ field: "email", message: "Email already taken" }],
+        };
+      }
+    }
 
     //Auto login on register
     req.session.userId = user.id;
@@ -91,12 +94,7 @@ export class UserResolver {
 
     if (!user) {
       return {
-        errors: [
-          {
-            field: "email",
-            message: "Email dont exist",
-          },
-        ],
+        errors: [{ field: "email", message: "Email dont exist" }],
       };
     }
 
@@ -104,12 +102,7 @@ export class UserResolver {
 
     if (!validPassword) {
       return {
-        errors: [
-          {
-            field: "password",
-            message: "password dont match",
-          },
-        ],
+        errors: [{ field: "password", message: "password dont match" }],
       };
     }
 
