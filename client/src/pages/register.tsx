@@ -2,34 +2,30 @@ import React from "react";
 import { Formik, Form, Field } from "formik";
 import { Button, Box } from "@chakra-ui/react";
 import { InputField } from "../components/InputField";
-import { useMutation } from "urql";
+import { useRegisterMutation } from "../generated/graphql";
 
 interface registerProps {}
 
-const REGISTER_MUTATION = `mutation Register($options: UserNamePasswordEmail!) {
-  register(options: $options) {
-    userName
-    id
-  }
-}`;
-
 const Register: React.FC<registerProps> = ({}) => {
-  const [, register] = useMutation(REGISTER_MUTATION);
+  const [, register] = useRegisterMutation();
 
   return (
     <Box mt="40" w="100%" maxW="400" mx="auto">
       <Formik
-        initialValues={{ username: "", password: "", email: "" }}
-        onSubmit={async (values) => {
+        initialValues={{ email: "", password: "" }}
+        onSubmit={async (values, { setErrors }) => {
           const response = await register({
             options: {
-              userName: values.username,
-              password: values.password,
               email: values.email,
+              password: values.password,
             },
           });
-
-          console.log(response);
+          if (response.data?.register.errors) {
+            const { field, message } = response.data?.register.errors[0];
+            setErrors({
+              [field]: message,
+            });
+          }
         }}
       >
         {({ isSubmitting }) => (
@@ -38,11 +34,6 @@ const Register: React.FC<registerProps> = ({}) => {
               placeholder="Enter your email"
               label="Email"
               name="email"
-            />
-            <InputField
-              placeholder="Choose a username"
-              label="Username"
-              name="username"
             />
             <InputField
               placeholder="Choose a password"

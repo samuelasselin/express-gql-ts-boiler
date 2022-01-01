@@ -11,25 +11,15 @@ import {
   ObjectType,
 } from "type-graphql";
 import argon2 from "argon2";
+import * as EmailValidator from "email-validator";
 
-// Define a inputType for our register mutation
+// Define a inputType for our register mutation and signin
 @InputType()
-class UserNamePasswordEmail {
-  @Field()
-  userName: string;
+class EmailPassword {
   @Field()
   password: string;
   @Field()
   email: string;
-}
-
-// Define a inputType for our sigin query
-@InputType()
-class UserNamePassword {
-  @Field()
-  userName: string;
-  @Field()
-  password: string;
 }
 
 @ObjectType()
@@ -52,19 +42,30 @@ class UserResponse {
 @Resolver()
 export class UserResolver {
   // Specify that mutation will return a User in type graphql
-  @Mutation(() => User)
+  @Mutation(() => UserResponse)
   async register(
     // Arg is the params received from our app
-    @Arg("options") options: UserNamePasswordEmail,
+    @Arg("options") options: EmailPassword,
     // Ctx is the graphql main context defined in index.ts - Access our ORM
     @Ctx() { em, req }: MyContext
   ): // Our register mutation will return a promise with our freshly created user
-  Promise<User> {
-    const { userName, password, email } = options;
+  Promise<UserResponse> {
+    const { password, email } = options;
+
+    if (!EmailValidator.validate(email)) {
+      return {
+        errors: [
+          {
+            field: "email",
+            message: "Email is invalid",
+          },
+        ],
+      };
+    }
+
     const hashedPassword = await argon2.hash(password);
     // Create our new user object
     const user = em.create(User, {
-      userName,
       email,
       password: hashedPassword,
     });
@@ -74,26 +75,26 @@ export class UserResolver {
     //Auto login on register
     req.session.userId = user.id;
 
-    return user;
+    return { user };
   }
 
   // Query will return a user or error
   @Query(() => UserResponse)
   async login(
-    @Arg("options") options: UserNamePassword,
+    @Arg("options") options: EmailPassword,
     @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
-    const { userName, password } = options;
+    const { email, password } = options;
     const user = await em.findOne(User, {
-      userName,
+      email,
     });
 
     if (!user) {
       return {
         errors: [
           {
-            field: "username",
-            message: "Username dont exist",
+            field: "email",
+            message: "Email dont exist",
           },
         ],
       };
