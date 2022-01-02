@@ -1,17 +1,22 @@
 import { ChakraProvider, ColorModeProvider } from "@chakra-ui/react";
-import { createClient, Provider } from "urql";
 import theme from "../theme";
 
-const client = createClient({
-  url: "http://localhost:4000/graphql",
-  fetchOptions: {
-    credentials: "include",
-  },
+import {
+  ApolloClient,
+  InMemoryCache,
+  ApolloProvider,
+  NormalizedCacheObject,
+} from "@apollo/client";
+
+const client = new ApolloClient<NormalizedCacheObject>({
+  uri: "http://localhost:4000/graphql",
+  credentials: "include",
+  cache: new InMemoryCache(),
 });
 
 const App = ({ Component, pageProps }) => {
   return (
-    <Provider value={client}>
+    <ApolloProvider client={client}>
       <ChakraProvider resetCSS theme={theme}>
         <ColorModeProvider
           options={{
@@ -21,7 +26,7 @@ const App = ({ Component, pageProps }) => {
           <Component {...pageProps} />
         </ColorModeProvider>
       </ChakraProvider>
-    </Provider>
+    </ApolloProvider>
   );
 };
 

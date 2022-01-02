@@ -1,21 +1,22 @@
 import React from "react";
-import { Formik, Form, Field } from "formik";
-import { Button, Box } from "@chakra-ui/react";
-import { InputField } from "../components/InputField";
-import { useRegisterMutation } from "../generated/graphql";
-import { toErrorMap } from "../utils/toErrorMap";
+import { Box, Button } from "@chakra-ui/react";
+import { Formik, Form } from "formik";
 import { useRouter } from "next/router";
+import { InputField } from "../components/InputField";
+import { useLoginMutation } from "../generated/graphql";
+import { toErrorMap } from "../utils/toErrorMap";
 
-const Register: React.FC<{}> = ({}) => {
+export const Login: React.FC<{}> = ({}) => {
   const router = useRouter();
-  const [executeRegister, { loading, error, data }] = useRegisterMutation();
+
+  const [executeLogin, { loading, error, data }] = useLoginMutation();
 
   return (
     <Box mt="40" w="100%" maxW="400" mx="auto">
       <Formik
         initialValues={{ email: "", password: "" }}
         onSubmit={async (values, { setErrors }) => {
-          const response = await executeRegister({
+          const response = await executeLogin({
             variables: {
               options: {
                 email: values.email,
@@ -23,9 +24,9 @@ const Register: React.FC<{}> = ({}) => {
               },
             },
           });
-          if (response.data?.register.errors) {
-            setErrors(toErrorMap(response.data.register.errors));
-          } else if (response.data?.register.user) {
+          if (response.data.login.errors) {
+            setErrors(toErrorMap(response.data.login.errors));
+          } else if (response.data?.login.user.id) {
             router.push("/");
           }
         }}
@@ -38,7 +39,7 @@ const Register: React.FC<{}> = ({}) => {
               name="email"
             />
             <InputField
-              placeholder="Choose a password"
+              placeholder="Enter your password"
               name="password"
               label="Password"
               type="password"
@@ -59,4 +60,4 @@ const Register: React.FC<{}> = ({}) => {
   );
 };
 
-export default Register;
+export default Login;
