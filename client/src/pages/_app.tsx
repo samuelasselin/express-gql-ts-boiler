@@ -15,6 +15,8 @@ const client = new ApolloClient<NormalizedCacheObject>({
 });
 
 const App = ({ Component, pageProps }) => {
+  const Layout = Component.layout || (({ children }) => <>{children}</>);
+
   return (
     <ApolloProvider client={client}>
       <ChakraProvider resetCSS theme={theme}>
@@ -23,7 +25,9 @@ const App = ({ Component, pageProps }) => {
             useSystemColorMode: true,
           }}
         >
-          <Component {...pageProps} />
+          <Layout>
+            <Component {...pageProps} />
+          </Layout>
         </ColorModeProvider>
       </ChakraProvider>
     </ApolloProvider>
